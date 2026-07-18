@@ -11,10 +11,10 @@
 class DriveXray < Formula
   desc "Index drives + find duplicates + snapshots over time"
   homepage "https://github.com/rbleite/drive-xray"
-  url "https://github.com/rbleite/drive-xray/releases/download/v1.4.0/dx-1.4.0-darwin-universal.tar.gz"
-  sha256 "d3deb7a045841127e324e59c369675f8ad4ec4f068e9bcee052aeb2d77edd308"
+  url "https://github.com/rbleite/drive-xray/releases/download/v1.4.1/dx-1.4.1-darwin-universal.tar.gz"
+  sha256 "3a8038b09341a45457a3a89e174e9725a5514974a6e46ce2a9a4be557f82f9e8"
   license "Apache-2.0"
-  version "1.4.0"
+  version "1.4.1"
 
   # The tarball already contains a universal binary; no per-arch split.
   depends_on macos: :big_sur
