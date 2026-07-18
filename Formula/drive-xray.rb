@@ -11,10 +11,10 @@
 class DriveXray < Formula
   desc "Index drives + find duplicates + snapshots over time"
   homepage "https://github.com/rbleite/drive-xray"
-  url "https://github.com/rbleite/drive-xray/releases/download/v1.0.0/dx-1.0.0-darwin-universal.tar.gz"
-  sha256 "11eaa560a34e2c88492bf1c93afd87bafd4efd60a3ced241bd0ab15d96c1fbd2"
+  url "https://github.com/rbleite/drive-xray/releases/download/v1.4.1/dx-1.4.1-darwin-universal.tar.gz"
+  sha256 "3a8038b09341a45457a3a89e174e9725a5514974a6e46ce2a9a4be557f82f9e8"
   license "Apache-2.0"
-  version "1.0.0"
+  version "1.4.1"
 
   # The tarball already contains a universal binary; no per-arch split.
   depends_on macos: :big_sur
@@ -46,8 +46,10 @@ class DriveXray < Formula
 
   test do
     # Smoke test: version flag prints schema + hash protocol.
-    assert_match "schema v5", shell_output("#{bin}/dx --version")
-    assert_match "hash v2",   shell_output("#{bin}/dx --version")
+    # (v1.4.0 output: "schema:  v6 (path interning + metadata)" /
+    #                 "hash:    BLAKE2b v2 (head + middle + tail)")
+    assert_match "v6",         shell_output("#{bin}/dx --version")
+    assert_match "BLAKE2b v2", shell_output("#{bin}/dx --version")
 
     # End-to-end: index a tiny tree, list the snapshot.
     (testpath/"data/a.txt").parent.mkpath
