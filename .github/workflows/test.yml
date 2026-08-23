@@ -81,7 +81,10 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/rbleite/drive-xray/releases/latest \
             | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"].lstrip("v"))')
-          have=$(sed -nE 's/^[[:space:]]*version "([^"]+)".*/\1/p' \
+          # Read it from the url, which is where brew reads it from too.
+          # There is no `version` line to read: brew audit rejects stating the
+          # number twice, and it was right to.
+          have=$(sed -nE 's#.*/releases/download/v([^/]+)/.*#\1#p' \
             Formula/drive-xray.rb | head -1)
 
           echo "formula : $have"

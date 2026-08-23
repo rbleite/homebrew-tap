@@ -14,7 +14,9 @@ class DriveXray < Formula
   url "https://github.com/rbleite/drive-xray/releases/download/v1.5.1/dx-1.5.1-darwin-universal.tar.gz"
   sha256 "427d90cb4f207352ac2dcaa58f6907f8ec626f78e23d90dbfcc838e5335963de"
   license "Apache-2.0"
-  version "1.5.1"
+  # No `version` line: brew scans it from the URL, and `brew audit` rejects
+  # stating it twice. It was right to — two places holding the same number is
+  # how this formula came to advertise one version while shipping another.
 
   # The tarball already contains a universal binary; no per-arch split.
   depends_on macos: :big_sur
@@ -55,9 +57,16 @@ class DriveXray < Formula
     # out an engine that read migrated databases without complaining and
     # answered cross-drive duplicate searches with nothing at all. Pinning the
     # number here means a formula left behind again fails its own test.
-    assert_match "v7",         shell_output("#{bin}/dx --version")
-    assert_match "BLAKE2b v2", shell_output("#{bin}/dx --version")
-    assert_match "dx 1.5.1",   shell_output("#{bin}/dx --version")
+    # `version` here is the one brew scanned from the URL, so the binary is
+    # checked against the tarball we actually asked for, with no third copy of
+    # the number to fall out of step.
+    assert_match "dx #{version}", shell_output("#{bin}/dx --version")
+    assert_match "BLAKE2b v2",    shell_output("#{bin}/dx --version")
+    # The schema number IS hardcoded, deliberately. It has to be revisited by
+    # a human when the schema moves, and that is the whole point: this line
+    # said "v6" for a month after v7 shipped, so a formula handing out an
+    # engine that could not read the current schema passed its own test.
+    assert_match "v7",            shell_output("#{bin}/dx --version")
 
     # End-to-end: index a tiny tree, list the snapshot.
     (testpath/"data/a.txt").parent.mkpath
