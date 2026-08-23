@@ -1,0 +1,103 @@
+name: tests
+
+# Two different failures, deliberately separated.
+#
+# `formula` catches a broken formula: a URL that 404s, a sha256 that does not
+# match the tarball, a binary that no longer prints what the test asserts. It
+# runs on every change, because those are things a change causes.
+#
+# `not-behind-upstream` catches the opposite -- a formula that is perfectly
+# valid and quietly out of date. That is what actually happened here: the
+# formula sat pinned to v1.4.1 for a month after the v7 database schema
+# shipped, so `brew install drive-xray` handed out an engine that read
+# migrated databases without complaining and answered cross-drive duplicate
+# searches with nothing at all. No push broke it, so no push-triggered job
+# could ever have caught it. It needs a clock.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Mondays 07:00 UTC — the staleness check only has meaning on a timer.
+    - cron: '0 7 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  formula:
+    name: brew install + test
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: tap
+
+      - name: link this checkout in as the tap
+        # Test the formula in THIS commit, not whatever `brew tap` would fetch
+        # from the default branch — otherwise a PR validates the code it is
+        # replacing.
+        run: |
+          set -euo pipefail
+          dest="$(brew --repository)/Library/Taps/rbleite/homebrew-tap"
+          mkdir -p "$(dirname "$dest")"
+          ln -s "$GITHUB_WORKSPACE/tap" "$dest"
+          brew tap-info rbleite/tap
+
+      - name: audit
+        # No --strict: it enforces house style rules for homebrew-core that a
+        # personal tap does not have to follow, and a red build over quoting
+        # style teaches people to ignore this job.
+        run: brew audit --online --formula rbleite/tap/drive-xray
+
+      - name: install
+        # Verifies the URL resolves and the sha256 matches — the exact pair
+        # that must be updated together and can silently disagree.
+        run: brew install --build-from-source --verbose rbleite/tap/drive-xray
+
+      - name: test
+        # Runs the formula's own `test do` block, which pins the schema number
+        # the binary prints. That assertion is the point: it was pinned to the
+        # OLD schema, so a formula a full minor version behind passed its own
+        # test every time.
+        run: brew test --verbose rbleite/tap/drive-xray
+
+      - name: what actually got installed
+        if: always()
+        run: dx --version || true
+
+  not-behind-upstream:
+    name: formula matches latest release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: compare formula version against the newest published release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          latest=$(curl -fsSL \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/rbleite/drive-xray/releases/latest \
+            | python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"].lstrip("v"))')
+          # Read it from the url, which is where brew reads it from too.
+          # There is no `version` line to read: brew audit rejects stating the
+          # number twice, and it was right to.
+          have=$(sed -nE 's#.*/releases/download/v([^/]+)/.*#\1#p' \
+            Formula/drive-xray.rb | head -1)
+
+          echo "formula : $have"
+          echo "upstream: $latest"
+
+          if [ -z "$have" ] || [ -z "$latest" ]; then
+            echo "::error::could not read one of the versions — the check itself is broken"
+            exit 1
+          fi
+          if [ "$have" != "$latest" ]; then
+            echo "::error::formula is on $have but drive-xray $latest is published."
+            echo "Update url, sha256 and version in Formula/drive-xray.rb, and the"
+            echo "schema number asserted in its test block if the schema moved."
+            exit 1
+          fi
+          echo "up to date"

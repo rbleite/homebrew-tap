@@ -17,9 +17,15 @@ with many USB drives, bioinformatics files, and photo collections.
 
 ```bash
 brew install drive-xray
-dx --version          # → dx 1.0.0 (schema v5 · hash v2)
+dx --version          # prints version, database schema and hash protocol
 dx --help
 ```
+
+The version is deliberately not spelled out here. This line claimed
+`dx 1.0.0 (schema v5 · hash v2)` long after the formula had moved to 1.4.1
+and the schema to v7 — a number copied into prose goes stale in silence,
+and nothing in the repository disagrees with it. `dx --version` is the
+authority.
 
 Source repo: https://github.com/rbleite/drive-xray
 
