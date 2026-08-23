@@ -11,10 +11,10 @@
 class DriveXray < Formula
   desc "Index drives + find duplicates + snapshots over time"
   homepage "https://github.com/rbleite/drive-xray"
-  url "https://github.com/rbleite/drive-xray/releases/download/v1.4.1/dx-1.4.1-darwin-universal.tar.gz"
-  sha256 "3a8038b09341a45457a3a89e174e9725a5514974a6e46ce2a9a4be557f82f9e8"
+  url "https://github.com/rbleite/drive-xray/releases/download/v1.5.1/dx-1.5.1-darwin-universal.tar.gz"
+  sha256 "427d90cb4f207352ac2dcaa58f6907f8ec626f78e23d90dbfcc838e5335963de"
   license "Apache-2.0"
-  version "1.4.1"
+  version "1.5.1"
 
   # The tarball already contains a universal binary; no per-arch split.
   depends_on macos: :big_sur
@@ -39,17 +39,25 @@ class DriveXray < Formula
 
       Try the CLI first:
         dx --version
-        dx index ~/Documents --label docs -x
-        dx dedupe ~/tools/drive-xray/docs.db
+        dx index ~/Documents --label docs -x --db ~/docs.db
+        dx dedupe ~/docs.db
     EOS
   end
 
   test do
     # Smoke test: version flag prints schema + hash protocol.
-    # (v1.4.0 output: "schema:  v6 (path interning + metadata)" /
+    # (v1.5.1 output: "dx 1.5.1" /
+    #                 "schema:  v7 (path interning, one row per path)" /
     #                 "hash:    BLAKE2b v2 (head + middle + tail)")
-    assert_match "v6",         shell_output("#{bin}/dx --version")
+    #
+    # The schema number is asserted deliberately. This formula sat pinned to
+    # v1.4.1 for a month after schema v7 shipped, so `brew install` was handing
+    # out an engine that read migrated databases without complaining and
+    # answered cross-drive duplicate searches with nothing at all. Pinning the
+    # number here means a formula left behind again fails its own test.
+    assert_match "v7",         shell_output("#{bin}/dx --version")
     assert_match "BLAKE2b v2", shell_output("#{bin}/dx --version")
+    assert_match "dx 1.5.1",   shell_output("#{bin}/dx --version")
 
     # End-to-end: index a tiny tree, list the snapshot.
     (testpath/"data/a.txt").parent.mkpath
