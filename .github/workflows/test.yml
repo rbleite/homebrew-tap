@@ -43,6 +43,10 @@ jobs:
           dest="$(brew --repository)/Library/Taps/rbleite/homebrew-tap"
           mkdir -p "$(dirname "$dest")"
           ln -s "$GITHUB_WORKSPACE/tap" "$dest"
+          # Homebrew 6 refuses to load a formula from a tap nobody has
+          # trusted ("Refusing to load formula ... from untrusted tap"), and
+          # so would every user's install. The README says the same.
+          brew trust rbleite/tap
           brew tap-info rbleite/tap
 
       - name: audit
