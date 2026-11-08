@@ -11,8 +11,8 @@
 class DriveXray < Formula
   desc "Index drives + find duplicates + snapshots over time"
   homepage "https://github.com/rbleite/drive-xray"
-  url "https://github.com/rbleite/drive-xray/releases/download/v1.6.0/dx-1.6.0-darwin-universal.tar.gz"
-  sha256 "e6417e64233f7d69c28393945eefa5aabfaa7191b96ac322785a22bb96ed8ad7"
+  url "https://github.com/rbleite/drive-xray/releases/download/v1.6.1/dx-1.6.1-darwin-universal.tar.gz"
+  sha256 "613e81f47fbde58644869a7dbdc9be1c6dda2c47e8d9a4bef620e1d04ad2793f"
   license "Apache-2.0"
   # No `version` line: brew scans it from the URL, and `brew audit` rejects
   # stating it twice. It was right to — two places holding the same number is
