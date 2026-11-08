@@ -26,7 +26,9 @@ on:
 jobs:
   formula:
     name: brew install + test
-    runs-on: macos-14
+    # macos-14 was retired by GitHub on 2026-11-02: jobs on it are
+    # cancelled at once, without a log.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with:
