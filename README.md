@@ -6,7 +6,11 @@ Personal Homebrew tap for tools maintained by [@rbleite](https://github.com/rble
 
 ```bash
 brew tap rbleite/tap
+brew trust rbleite/tap
 ```
+
+`brew trust` is needed since Homebrew 6, which refuses to load a formula
+from a third-party tap until you say you trust it.
 
 ## Available formulae
 

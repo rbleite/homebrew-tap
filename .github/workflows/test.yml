@@ -26,7 +26,9 @@ on:
 jobs:
   formula:
     name: brew install + test
-    runs-on: macos-14
+    # macos-14 was retired by GitHub on 2026-11-02: jobs on it are
+    # cancelled at once, without a log.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,6 +43,10 @@ jobs:
           dest="$(brew --repository)/Library/Taps/rbleite/homebrew-tap"
           mkdir -p "$(dirname "$dest")"
           ln -s "$GITHUB_WORKSPACE/tap" "$dest"
+          # Homebrew 6 refuses to load a formula from a tap nobody has
+          # trusted ("Refusing to load formula ... from untrusted tap"), and
+          # so would every user's install. The README says the same.
+          brew trust rbleite/tap
           brew tap-info rbleite/tap
 
       - name: audit
